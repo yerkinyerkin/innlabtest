@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:innlabtest/screens/check/screen/check_screen.dart';
+import 'package:innlabtest/screens/contact/screen/contacts_screen.dart';
+import 'package:innlabtest/screens/gallery/screen/gallery_screen.dart';
+import 'package:innlabtest/navigation_drawer_widget.dart';
+import 'package:innlabtest/screens/news/screen/news_screen.dart';
+import 'injection_container.dart';
 
-void main() => runApp(const MyApp());
+void main(){
+  initGetIt();
+
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -8,6 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: MyStatefulWidget(),
     );
   }
@@ -22,25 +34,11 @@ class MyStatefulWidget extends StatefulWidget {
 
 class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   int _selectedIndex = 0;
-  static const TextStyle optionStyle =
-  TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: News',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Gallery',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: Check',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 3: Contacts',
-      style: optionStyle,
-    ),
+  List<Widget> screens = [
+    NewsScreen(),
+    GalleryScreen(),
+    CheckScreen(),
+    Contacts(),
   ];
 
   void _onItemTapped(int index) {
@@ -52,22 +50,13 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Center(
-          child: (Text(
-            "Check"
-          )),
-        ),
-        backgroundColor: Color(0xff322C54),
-      ),
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
-      ),
+      drawer: NavigationDrawerWidget(),
+      body: screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Home',
+            label: 'News',
             backgroundColor: Color(0xff322C54),
           ),
           BottomNavigationBarItem(
