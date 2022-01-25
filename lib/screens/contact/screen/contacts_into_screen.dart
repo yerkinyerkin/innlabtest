@@ -10,6 +10,7 @@ class ContactsInto extends StatefulWidget {
   _ContactsIntoState createState() => _ContactsIntoState();
 }
 
+
 class _ContactsIntoState extends State<ContactsInto> {
   @override
   Widget build(BuildContext context) {
@@ -31,10 +32,13 @@ class _ContactsIntoState extends State<ContactsInto> {
                         "https://wallpapercave.com/wp/wp2587127.jpg"),
                   ),
                 ),
+                SizedBox(height: 20,),
                 Text("${widget.contact.name}",
                   style: TextStyle(color: Colors.white, fontSize: 20),),
+                SizedBox(height: 20,),
                 Text("${widget.contact.email}",
                   style: TextStyle(color: Colors.white, fontSize: 14),),
+                SizedBox(height: 20,),
                 TextField(
                   onChanged: (text) {
                     print("${text}");
@@ -47,6 +51,7 @@ class _ContactsIntoState extends State<ContactsInto> {
                     ),
                   ),
                 ),
+                SizedBox(height: 20,),
                 TextField(
                   onChanged: (text) {
                     print("${text}");
@@ -59,6 +64,7 @@ class _ContactsIntoState extends State<ContactsInto> {
                     ),
                   ),
                 ),
+                SizedBox(height: 20,),
                 TextField(
                   onChanged: (text) {
                     print("${text}");
@@ -71,6 +77,7 @@ class _ContactsIntoState extends State<ContactsInto> {
                     ),
                   ),
                 ),
+                SizedBox(height: 20,),
                 TextField(
                   onChanged: (text) {
                     print("${text}");
@@ -83,6 +90,7 @@ class _ContactsIntoState extends State<ContactsInto> {
                     ),
                   ),
                 ),
+                SizedBox(height: 20,),
                 TextField(
                   onChanged: (text) {
                     print("${text}");

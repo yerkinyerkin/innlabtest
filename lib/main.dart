@@ -5,7 +5,7 @@ import 'package:innlabtest/screens/contact/screen/contacts_screen.dart';
 import 'package:innlabtest/screens/gallery/screen/gallery_screen.dart';
 import 'package:innlabtest/navigation_drawer_widget.dart';
 import 'package:innlabtest/screens/news/screen/news_screen.dart';
-import 'injection_container.dart';
+import 'core/injection_container.dart';
 
 void main(){
   initGetIt();
@@ -24,6 +24,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 
 class MyStatefulWidget extends StatefulWidget {
   const MyStatefulWidget({Key? key}) : super(key: key);
@@ -70,7 +71,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
             backgroundColor: Color(0xff322C54),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
+            icon: Icon(Icons.perm_contact_cal),
             label: 'Contacts',
             backgroundColor: Color(0xff322C54),
           ),

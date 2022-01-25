@@ -1,8 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:innlabtest/logic/gallery/models/gallery_model.dart';
-import 'package:dio/dio.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:innlabtest/core/const/color_styles.dart';
+import 'package:innlabtest/logic/gallery/bloc/gallery_bloc.dart';
 import 'package:innlabtest/screens/gallery/screen/gallery_into_screen.dart';
+
+
+import '../../../core/injection_container.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({Key? key}) : super(key: key);
@@ -12,16 +16,7 @@ class GalleryScreen extends StatefulWidget {
 }
 
 class _GalleryScreenState extends State<GalleryScreen> {
-  Future<List<GalleryModel>> getGalleryAlbum() async {
-    Response response = await Dio().get(
-        'https://jsonplaceholder.typicode.com/albums');
-    List<GalleryModel> albumList = (response.data as List)
-        .map((data) => GalleryModel.fromJson(data))
-        .toList();
 
-
-    return albumList;
-  }
 
   void _navigateToNextScreen(BuildContext context, int id) {
     Navigator.of(context).push(MaterialPageRoute(builder: (context) => GalleryIntoScreen(id: id,)));
@@ -29,68 +24,84 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text("Gallery",textAlign: TextAlign.center,),
-          backgroundColor: Color(0xff322C54),
-        ),
-      backgroundColor: Color(0xff0F0B21),
-      body: FutureBuilder(
-        future: getGalleryAlbum(),
-        builder: (context,snapshot){
-          if(snapshot.hasData){
-            List albumList = snapshot.data as List;
-                  return GridView.count(
-                    padding: const EdgeInsets.all(5),
-                    crossAxisSpacing: 20,
-                    crossAxisCount: 2,
-                    children: List.generate(albumList.length, (index) {
-                      return Center(
-                        child: Column(
-                          children: [
-                            Container(
-                              child: CupertinoButton(
-                                child: Stack(
-                                  children: [
-                                    Image.asset(
-                                        'assets/images/photo.jpg',
-                                        height: 140,
-                                        fit: BoxFit.cover),
-                                    Positioned(
-                                      bottom: 10,
-
-                                      child: Container(
-                                        // color: Colors.black54,
-                                        padding: EdgeInsets.all(10),
-                                        child: Text(
-                                          '${albumList[index].title}',
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.white,
-                                              overflow: TextOverflow.ellipsis
-                                          ),
+    return BlocProvider(
+      create: (context) => sl<GalleryBloc>() ..add(PleaseLoadGalleryList()),
+      child: Scaffold(
+          appBar: AppBar(
+            title: Text("Gallery",textAlign: TextAlign.center,),
+            backgroundColor: Color(0xff322C54),
+          ),
+        backgroundColor: ColorStyles.backgroundColor,
+        body: BlocBuilder<GalleryBloc,GalleryState>(
+          builder: (context,state){
+            if(state is GalleryInitial) {
+              return Center(
+                child: Text(
+                    "Initial State, али дым загружать еткен жокпыз"
+                ),
+              );
+            }
+            if(state is GalleryLoading) {
+              return Center(
+                child: CupertinoActivityIndicator(radius: 40),
+              );
+            }
+            if(state is GallerySuccess) {
+              return GridView.count(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 20,
+                  children: List.generate(state.galleryList.length, (index) {
+                    return Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            child: CupertinoButton(
+                              onPressed: (){
+                                _navigateToNextScreen(context, state.galleryList[index].id);
+                              },
+                              child: Stack(
+                                children: [
+                                  Image.asset('assets/images/photo.jpg',
+                                  height: 140,
+                                  fit: BoxFit.cover,
+                                  ),
+                                  Positioned(
+                                    bottom: 10,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      child: Text(
+                                        '${state.galleryList[index].title}',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.white,
+                                          overflow: TextOverflow.ellipsis
                                         ),
                                       ),
-                                    )
-                                  ],
-                                ),
-                                onPressed: () {
-                                  _navigateToNextScreen(context, albumList[index].id);
-                                },
-                              )
+                                    ),
+                                  )
+                                ],
+                              ),
                             ),
-                            SizedBox(height: 10),
-                          ],
-                        ),
-                      );
-                    }),
-                  );
-          }
-          else{
-            return Center(child: CircularProgressIndicator());
-          }
-        },
-      )
+                          ),
+                          SizedBox(height: 10,)
+                        ],
+                      ),
+                    );
+                  }),
+              );
+            }
+            if(state is GalleryFailure) {
+
+              return Center(
+                child: Text(
+                    state.errorMessage
+                ),
+              );
+            }
+            return Offstage();
+          },
+        )
+      ),
     );
   }
 }

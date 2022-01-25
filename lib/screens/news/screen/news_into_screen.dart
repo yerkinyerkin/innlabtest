@@ -1,8 +1,11 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:innlabtest/logic/news/models/news_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:innlabtest/core/const/color_styles.dart';
+import 'package:innlabtest/core/injection_container.dart';
+import 'package:innlabtest/logic/news/bloc/news_into_bloc.dart';
 import 'package:innlabtest/logic/news/models/news_into_model.dart';
+import 'package:innlabtest/logic/news/models/news_model.dart';
 
 class NewsIntoScreen extends StatefulWidget {
   final NewsModel news;
@@ -16,16 +19,6 @@ class NewsIntoScreen extends StatefulWidget {
 class _NewsIntoState extends State<NewsIntoScreen> {
   bool hideButton = false;
 
-  Future<List<NewsIntoModel>> getNewsList() async {
-    Response response = await Dio().get('https://jsonplaceholder.typicode.com/comments');
-    List<NewsIntoModel> newsIntoList = (response.data as List)
-        .map((data) =>  NewsIntoModel.fromJson(data))
-        .toList();
-
-
-    return newsIntoList;
-  }
-
   void showComment(){
     setState(() {
       hideButton = !hideButton;
@@ -34,125 +27,176 @@ class _NewsIntoState extends State<NewsIntoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("News",textAlign: TextAlign.center),
-        backgroundColor: Color(0xff322C54),
-      ),
-      backgroundColor: Color(0xff0F0B21),
-      body: FutureBuilder(
-        future: getNewsList(),
-        builder: (context,snapshot){
-          if(snapshot.hasData){
-            List<NewsIntoModel> newsIntoList = snapshot.data as List<NewsIntoModel>;
-            List<NewsIntoModel> equalID = newsIntoList.where((element) => element.postId == widget.id).toList();
-            return Container(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Card(
-                          child: Column(
+    return BlocProvider(
+      create: (context) => sl<NewsIntoBloc>()..add(PleaseLoadNewsIntoList()),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("News",textAlign: TextAlign.center),
+          backgroundColor: Color(0xff322C54),
+        ),
+        backgroundColor: Color(0xff0F0B21),
+        body: BlocBuilder<NewsIntoBloc,NewsIntoState>(
+          builder: (context, state) {
+            if(state is NewsIntoInitial) {
+              return Center(
+                child: Text(
+                    "Initial State, али дым загружать еткен жокпыз"
+                ),
+              );
+            }
+            if(state is NewsIntoLoading) {
+              return Center(
+                child: CupertinoActivityIndicator(radius: 40),
+              );
+            }
+            if(state is NewsIntoSuccess) {
+              List<NewsIntoModel> equalID = state.newsIntoList.where((element) => element.postId == widget.id).toList();
+              return Container(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Container(
+                        child: Column(
+                          children: [
+                            SizedBox(height: 20,),
+                            Text(
+                              '${widget.news.title}',
+                              style: TextStyle(
+                                color: ColorStyles.whiteColor,
+                                fontSize: 16,
+                                  overflow: TextOverflow.ellipsis
+                              ),
+                            ),
+                            SizedBox(height: 20,),
+                            Text(
+                                '${widget.news.body}',
+                              style: TextStyle(
+                                color: ColorStyles.whiteColor,
+                                fontSize: 14,
+                                  overflow: TextOverflow.ellipsis
+                              ),
+                            ),
+                            SizedBox(height: 20,),
+                          ],
+                        ),
+                      ),
+                      Container(
+                          constraints: BoxConstraints(
+                            minHeight: 200,
+                          ),
+                          child: hideButton == false ?  (
+                          ListView.builder(
+                            padding: const EdgeInsets.all(5),
+                            itemCount: 2,
+                            physics: NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemBuilder: (BuildContext context,int index){
+                              return Card(
+                                color: ColorStyles.newsCardColor,
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.account_circle_rounded,
+                                          size: 50,
+                                        ),
+                                        Text(
+                                          '${equalID[index].name}',
+                                          style: TextStyle(
+                                            color: ColorStyles.whiteColor,
+                                            overflow: TextOverflow.ellipsis
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: 20),
+                                    Text(
+                                      '${equalID[index].body}',
+                                      style: TextStyle(
+                                          color: ColorStyles.whiteColor,
+                                          overflow: TextOverflow.ellipsis
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          )
+                        ) : (
+                        ListView.builder(
+                          padding: const EdgeInsets.all(5),
+                          itemCount: equalID.length,
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemBuilder: (BuildContext context,int index){
+                             return Card(
+                               color: ColorStyles.newsCardColor,
+                               child: Column(
+                                 children: [
+                                   Row(
+                                     children: [
+                                       Icon(
+                                         Icons.account_circle_rounded,
+                                         size:50,
+                                       ),
+                                       Text(
+                                         '${equalID[index].name}',
+                                         style: TextStyle(
+                                             color: ColorStyles.whiteColor,
+                                             overflow: TextOverflow.ellipsis
+                                         ),
+                                       ),
+                                     ],
+                                   ),
+                                   SizedBox(height: 20),
+                                   Text(
+                                     '${equalID[index].body}',
+                                     style: TextStyle(
+                                         color: ColorStyles.whiteColor,
+                                         overflow: TextOverflow.ellipsis
+                                     ),
+                                   ),
+                                 ],
+                               ),
+                             );
+                          },
+                        )
+                        )
+                      ),
+                      CupertinoButton(
+                        onPressed: () {
+                          showComment();
+                        },
+                        child: Container(
+                          child: Row(
                             children: [
                               Text(
-                                  "${widget.news.title}"
+                                  '${hideButton == false ? "Show" : "Hide"} ${hideButton == false ? "me ${equalID.length} comments " : "till 2 comments"}'
                               ),
-                              Text(
-                                  "${widget.news.body}"
-                              )
+                              Icon(
+                                Icons.remove_red_eye
+                              ),
                             ],
                           ),
-                    ),
-                    Container(
-                      child: hideButton == false ? (ListView.builder(
-                        padding: const EdgeInsets.all(5),
-                        itemCount: 2,
-                        physics: NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        itemBuilder: (BuildContext context,int index){
-                          return Card(
-                            child: Column(children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.account_circle_rounded,
-                                    size: 50,
-                                  ),
-                                  Text(
-                                    "${equalID[index].name}",
-                                    style: TextStyle(
-                                        overflow: TextOverflow.ellipsis
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 20,),
-                              Text(
-                                "${equalID[index].body}",
-                                style: TextStyle(
-                                    overflow: TextOverflow.ellipsis
-                                ),
-                              ),
-                            ],
-                            ),
-                          );
-                        },
-                      )) : (ListView.builder(
-                        padding: const EdgeInsets.all(5),
-                        itemCount: equalID.length,
-                        physics: NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        itemBuilder: (BuildContext context,int index){
-                          return Card(
-                            child: Column(children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.account_circle_rounded,
-                                    size: 50,
-                                  ),
-                                  Text(
-                                    "${equalID[index].name}",
-                                    style: TextStyle(
-                                        overflow: TextOverflow.ellipsis
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 20,),
-                              Text(
-                                "${equalID[index].body}",
-                                style: TextStyle(
-                                    overflow: TextOverflow.ellipsis
-                                ),
-                              ),
-                            ],
-                            ),
-                          );
-                        },
-                      ))
-                    ),
-                  CupertinoButton(child: Container(
-                    child: Row(
-                      children: [
-                        Text("${hideButton == false ? "Show " : "Hide"} ${hideButton == false ? "me ${equalID.length} results" : " results"} "),
-                        Icon(
-                          Icons.remove_red_eye
                         ),
-                      ],
-                    ),
-                  ), onPressed: (){
-                    showComment();
-                  })
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              );
+            }
+            if(state is NewsIntoFailure) {
 
-            );
-          }
-          else{
-            return Center(child: CircularProgressIndicator());
-          }
-        },
+              return Center(
+                child: Text(
+                    state.errorMessage
+                ),
+              );
+            }
+            return Offstage();
+          },
+        )
       ),
     );
   }
